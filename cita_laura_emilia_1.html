@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Una Cita Especial 💙💛</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --boca-blue: #003f8a;
+    --boca-gold: #f5c518;
+    --boca-light: #cce0ff;
+    --boca-dark: #001a3d;
+    --cream: #fdf8f0;
+    --text-dark: #1a1a2e;
+    --locked: #8a9bb5;
+  }
+
+  body {
+    background: var(--boca-dark);
+    font-family: 'Barlow', sans-serif;
+    color: var(--cream);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── HEADER ─── */
+  .header {
+    text-align: center;
+    padding: 2.5rem 1rem 1.5rem;
+    position: relative;
+    background: linear-gradient(180deg, #000d1f 0%, var(--boca-dark) 100%);
+    border-bottom: 3px solid var(--boca-gold);
+  }
+
+  .boca-stripe {
+    height: 8px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--boca-blue) 0px,
+      var(--boca-blue) 40px,
+      var(--boca-gold) 40px,
+      var(--boca-gold) 60px
+    );
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+  }
+
+  .escudo {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 0 12px rgba(245,197,24,0.4));
+  }
+
+  .header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    color: var(--boca-gold);
+    text-shadow: 0 2px 20px rgba(245,197,24,0.3);
+    line-height: 1.2;
+  }
+
+  .header .subtitle {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.15em;
+    color: var(--boca-light);
+    text-transform: uppercase;
+    margin-top: 0.4rem;
+    opacity: 0.8;
+  }
+
+  .header .date-from {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--boca-gold);
+    opacity: 0.7;
+    font-style: italic;
+  }
+
+  /* ─── MAP SECTION ─── */
+  .map-container {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    margin: 2rem auto 0;
+    padding: 0 1rem;
+  }
+
+  .map-bg {
+    background: #001228;
+    border: 2px solid var(--boca-blue);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 40px rgba(0, 63, 138, 0.4), inset 0 0 60px rgba(0,0,0,0.5);
+  }
+
+  /* Decorative grid on map */
+  .map-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,63,138,0.12) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,63,138,0.12) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  /* Buenos Aires map SVG */
+  .map-svg {
+    width: 100%;
+    height: 340px;
+    display: block;
+  }
+
+  /* Route line */
+  .route-line {
+    stroke: var(--boca-gold);
+    stroke-width: 2;
+    stroke-dasharray: 8 5;
+    fill: none;
+    opacity: 0.6;
+    animation: dash 20s linear infinite;
+  }
+
+  @keyframes dash {
+    to { stroke-dashoffset: -200; }
+  }
+
+  /* Pin styles */
+  .map-pin {
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .map-pin:hover { transform: scale(1.1); }
+
+  .pin-circle {
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+  }
+
+  .pin-number {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    fill: white;
+  }
+
+  /* ─── STOPS GRID ─── */
+  .stops-grid {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .stop-card {
+    background: #001f45;
+    border: 2px solid var(--boca-blue);
+    border-radius: 14px;
+    padding: 1.2rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.2s;
+    cursor: pointer;
+  }
+
+  .stop-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--boca-gold);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s;
+  }
+
+  .stop-card.unlocked::before { transform: scaleX(1); }
+
+  .stop-card:hover {
+    border-color: var(--boca-gold);
+    transform: translateY(-2px);
+  }
+
+  .stop-number {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--boca-gold);
+    text-transform: uppercase;
+    opacity: 0.8;
+    margin-bottom: 0.3rem;
+  }
+
+  .stop-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .stop-title-locked {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.1rem;
+    color: var(--locked);
+    letter-spacing: 0.05em;
+  }
+
+  .stop-title-unlocked {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--boca-gold);
+  }
+
+  .stop-desc {
+    font-size: 0.82rem;
+    color: #8ab0d0;
+    margin-top: 0.4rem;
+    line-height: 1.5;
+  }
+
+  .lock-icon {
+    position: absolute;
+    top: 1rem; right: 1rem;
+    font-size: 1.2rem;
+    opacity: 0.5;
+  }
+
+  .unlock-badge {
+    position: absolute;
+    top: 0.8rem; right: 0.8rem;
+    background: var(--boca-gold);
+    color: var(--boca-dark);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 13, 31, 0.92);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: #001f45;
+    border: 2px solid var(--boca-blue);
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 440px;
+    width: 100%;
+    position: relative;
+    box-shadow: 0 0 60px rgba(0,63,138,0.6), 0 0 0 1px rgba(245,197,24,0.1);
+    animation: modalIn 0.3s ease;
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0)  scale(1); }
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 1rem; right: 1rem;
+    background: none;
+    border: none;
+    color: var(--boca-light);
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+  .modal-close:hover { opacity: 1; }
+
+  .modal-icon { font-size: 2.5rem; text-align: center; margin-bottom: 0.5rem; }
+
+  .modal h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--boca-gold);
+    text-align: center;
+    margin-bottom: 0.3rem;
+  }
+
+  .modal .question-text {
+    font-size: 0.9rem;
+    color: var(--boca-light);
+    text-align: center;
+    margin-bottom: 1.2rem;
+    line-height: 1.5;
+    padding: 0.8rem;
+    background: rgba(0,63,138,0.2);
+    border-radius: 10px;
+    border-left: 3px solid var(--boca-gold);
+  }
+
+  .modal input {
+    width: 100%;
+    background: #000d1f;
+    border: 1.5px solid var(--boca-blue);
+    border-radius: 10px;
+    color: var(--cream);
+    font-family: 'Barlow', sans-serif;
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+    text-align: center;
+    letter-spacing: 0.05em;
+  }
+
+  .modal input:focus { border-color: var(--boca-gold); }
+  .modal input::placeholder { color: #3a5a80; }
+
+  .modal-btn {
+    width: 100%;
+    margin-top: 1rem;
+    background: var(--boca-gold);
+    color: var(--boca-dark);
+    border: none;
+    border-radius: 10px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .modal-btn:hover { background: #ffd740; }
+  .modal-btn:active { transform: scale(0.98); }
+
+  .modal-error {
+    color: #ff6b6b;
+    font-size: 0.82rem;
+    text-align: center;
+    margin-top: 0.5rem;
+    min-height: 1.2rem;
+  }
+
+  /* ─── REVEAL MODAL ─── */
+  .reveal-content { text-align: center; }
+
+  .reveal-content .big-icon { font-size: 4rem; margin-bottom: 0.5rem; animation: bounce 0.5s ease; }
+
+  @keyframes bounce {
+    0%   { transform: scale(0); }
+    70%  { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  .reveal-content h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    color: var(--boca-gold);
+    margin-bottom: 0.3rem;
+  }
+
+  .reveal-content .address {
+    font-size: 0.82rem;
+    color: #8ab0d0;
+    margin: 0.3rem 0 1rem;
+  }
+
+  .reveal-detail {
+    background: rgba(0,63,138,0.2);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    font-size: 0.88rem;
+    color: var(--boca-light);
+    text-align: left;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    border-left: 3px solid var(--boca-gold);
+  }
+
+  .confetti-bar {
+    display: flex;
+    justify-content: center;
+    gap: 0.3rem;
+    font-size: 1.2rem;
+    margin-bottom: 0.8rem;
+  }
+
+  /* ─── PROGRESS ─── */
+  .progress-section {
+    max-width: 900px;
+    margin: 0 auto 1rem;
+    padding: 0 1rem;
+  }
+
+  .progress-bar-wrap {
+    background: #001228;
+    border-radius: 20px;
+    height: 8px;
+    overflow: hidden;
+    border: 1px solid var(--boca-blue);
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--boca-blue), var(--boca-gold));
+    border-radius: 20px;
+    transition: width 0.6s ease;
+    width: 0%;
+  }
+
+  .progress-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.8rem;
+    color: var(--boca-gold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: right;
+    margin-bottom: 0.3rem;
+    opacity: 0.7;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    text-align: center;
+    padding: 2rem 1rem 3rem;
+    font-size: 0.78rem;
+    color: #3a5a80;
+    font-style: italic;
+  }
+
+  /* ─── FIREWORKS ─── */
+  .firework {
+    position: fixed;
+    pointer-events: none;
+    z-index: 300;
+    font-size: 1.5rem;
+    animation: fw 1.5s ease forwards;
+  }
+  @keyframes fw {
+    0%   { opacity: 1; transform: translate(0,0) scale(0.5); }
+    100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(1.5); }
+  }
+
+  /* ─── INTRO SCREEN ─── */
+  #intro-screen {
+    position: fixed;
+    inset: 0;
+    background: #000d1f;
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  #intro-screen.hiding {
+    opacity: 0;
+    transform: scale(1.04);
+    pointer-events: none;
+  }
+
+  .intro-escudo {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    animation: pulse-glow 2.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { filter: drop-shadow(0 0 8px rgba(245,197,24,0.3)); transform: scale(1); }
+    50%       { filter: drop-shadow(0 0 24px rgba(245,197,24,0.7)); transform: scale(1.06); }
+  }
+
+  .intro-from {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--boca-gold);
+    opacity: 0.65;
+    margin-bottom: 0.8rem;
+  }
+
+  .intro-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 7vw, 3.6rem);
+    color: var(--boca-gold);
+    text-shadow: 0 0 40px rgba(245,197,24,0.25);
+    line-height: 1.15;
+    margin-bottom: 0.6rem;
+  }
+
+  .intro-subtitle {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(1rem, 3vw, 1.3rem);
+    color: var(--boca-light);
+    opacity: 0.75;
+    margin-bottom: 2.5rem;
+  }
+
+  .intro-divider {
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--boca-gold), transparent);
+    margin: 0 auto 2.5rem;
+  }
+
+  .intro-btn {
+    background: transparent;
+    border: 2px solid var(--boca-gold);
+    color: var(--boca-gold);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 1rem 3rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background 0.25s, color 0.25s, transform 0.15s, box-shadow 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .intro-btn:hover {
+    background: var(--boca-gold);
+    color: var(--boca-dark);
+    box-shadow: 0 0 30px rgba(245,197,24,0.35);
+    transform: translateY(-2px);
+  }
+
+  .intro-btn:active { transform: scale(0.97); }
+
+  .intro-footer {
+    margin-top: 3rem;
+    font-size: 0.75rem;
+    color: #2a4a6a;
+    font-style: italic;
+    letter-spacing: 0.05em;
+  }
+
+  /* ─── STARS BG ─── */
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .star {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle var(--d) ease-in-out infinite alternate;
+    opacity: var(--o);
+  }
+  @keyframes twinkle {
+    to { opacity: 0.1; }
+  }
+
+  .content-wrap { position: relative; z-index: 1; }
+</style>
+</head>
+<body>
+
+<div class="boca-stripe"></div>
+
+<!-- Stars background -->
+<div class="stars" id="stars"></div>
+
+<!-- INTRO SCREEN -->
+<div id="intro-screen">
+  <div class="intro-escudo">💙⚽💛</div>
+  <p class="intro-from">De Emilia, para Laura</p>
+  <h1 class="intro-title">Una Cita<br>Especial</h1>
+  <p class="intro-subtitle">Te espera un día lleno de sorpresas<br>por Buenos Aires</p>
+  <div class="intro-divider"></div>
+  <button class="intro-btn" onclick="startAdventure()">Iniciar Aventura</button>
+  <p class="intro-footer">Cada destino es un misterio · Desbloquealo con una contraseña</p>
+</div>
+
+<div class="content-wrap">
+
+<!-- HEADER -->
+<div class="header" style="padding-top:3rem;">
+  <div class="escudo">⚽🏆💙</div>
+  <h1>Una Cita Muy Especial</h1>
+  <p class="subtitle">Buenos Aires · Para Laura, con todo el amor de Emilia</p>
+  <p class="date-from">Desbloqueá cada parada para descubrir la sorpresa ✨</p>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-section" style="margin-top:1.5rem;">
+  <p class="progress-label" id="progress-label">0 de 4 paradas desbloqueadas</p>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-fill"></div>
+  </div>
+</div>
+
+<!-- MAP -->
+<div class="map-container">
+  <div class="map-bg">
+    <svg class="map-svg" viewBox="0 0 800 320" xmlns="http://www.w3.org/2000/svg">
+      <!-- Map decoration - Buenos Aires outline abstraction -->
+      <rect width="800" height="320" fill="transparent"/>
+
+      <!-- River Rio de la Plata suggestion -->
+      <path d="M 680 0 Q 720 80 760 160 Q 780 220 800 280 L 800 320 L 680 320 Z" fill="#001a3d" opacity="0.8"/>
+      <text x="730" y="120" fill="#0a3d6b" font-size="11" font-family="Barlow Condensed" letter-spacing="2" transform="rotate(15, 730, 120)" opacity="0.6">RÍO DE LA PLATA</text>
+
+      <!-- Grid streets abstraction -->
+      <!-- Avenidas -->
+      <line x1="0" y1="160" x2="660" y2="160" stroke="#0a3d6b" stroke-width="2" opacity="0.5"/>
+      <line x1="0" y1="200" x2="660" y2="200" stroke="#0a3d6b" stroke-width="1" opacity="0.3"/>
+      <line x1="0" y1="120" x2="660" y2="120" stroke="#0a3d6b" stroke-width="1" opacity="0.3"/>
+      <line x1="0" y1="240" x2="660" y2="240" stroke="#0a3d6b" stroke-width="1.5" opacity="0.4"/>
+      <line x1="0" y1="80" x2="660" y2="80" stroke="#0a3d6b" stroke-width="1" opacity="0.3"/>
+      <!-- Verticales -->
+      <line x1="160" y1="0" x2="160" y2="320" stroke="#0a3d6b" stroke-width="1" opacity="0.3"/>
+      <line x1="260" y1="0" x2="260" y2="320" stroke="#0a3d6b" stroke-width="1" opacity="0.3"/>
+      <line x1="360" y1="0" x2="360" y2="320" stroke="#0a3d6b" stroke-width="1" opacity="0.3"/>
+      <line x1="460" y1="0" x2="460" y2="320" stroke="#0a3d6b" stroke-width="1" opacity="0.3"/>
+      <line x1="560" y1="0" x2="560" y2="320" stroke="#0a3d6b" stroke-width="1" opacity="0.3"/>
+      <line x1="80" y1="0" x2="80" y2="320" stroke="#0a3d6b" stroke-width="0.5" opacity="0.2"/>
+
+      <!-- Diagonal - 9 de Julio -->
+      <line x1="0" y1="280" x2="660" y2="40" stroke="#0d4a8a" stroke-width="3" opacity="0.4"/>
+      <text x="100" y="265" fill="#0d5c9a" font-size="8" font-family="Barlow Condensed" letter-spacing="1" opacity="0.7" transform="rotate(-18,100,265)">AV. 9 DE JULIO</text>
+
+      <!-- Corrientes -->
+      <line x1="0" y1="160" x2="660" y2="160" stroke="#0d4a8a" stroke-width="2.5" opacity="0.5"/>
+      <text x="20" y="155" fill="#0d5c9a" font-size="8" font-family="Barlow Condensed" letter-spacing="1" opacity="0.7">AV. CORRIENTES</text>
+
+      <!-- Route dotted line connecting pins -->
+      <path class="route-line" d="M 200 140 Q 240 200 300 180 Q 380 160 440 200"/>
+
+      <!-- PIN 1: Obelisco - at the 9 de Julio diagonal crossing -->
+      <g class="map-pin" onclick="openModal(0)" id="pin-0">
+        <circle cx="200" cy="140" r="22" fill="#003f8a" stroke="#f5c518" stroke-width="2.5" class="pin-circle"/>
+        <text class="pin-number" x="200" y="145" text-anchor="middle">1</text>
+        <polygon points="200,164 193,180 207,180" fill="#f5c518" opacity="0.9"/>
+      </g>
+      <text x="200" y="195" text-anchor="middle" fill="#4a7abf" font-size="9" font-family="Barlow Condensed" letter-spacing="1" id="pin-label-0">???</text>
+
+      <!-- PIN 2: Café Tortoni -->
+      <g class="map-pin" onclick="openModal(1)" id="pin-1">
+        <circle cx="300" cy="180" r="22" fill="#003f8a" stroke="#f5c518" stroke-width="2.5" class="pin-circle"/>
+        <text class="pin-number" x="300" y="185" text-anchor="middle">2</text>
+        <polygon points="300,204 293,220 307,220" fill="#f5c518" opacity="0.9"/>
+      </g>
+      <text x="300" y="235" text-anchor="middle" fill="#4a7abf" font-size="9" font-family="Barlow Condensed" letter-spacing="1" id="pin-label-1">???</text>
+
+      <!-- PIN 3: Teatro San Martín -->
+      <g class="map-pin" onclick="openModal(2)" id="pin-2">
+        <circle cx="420" cy="155" r="22" fill="#003f8a" stroke="#f5c518" stroke-width="2.5" class="pin-circle"/>
+        <text class="pin-number" x="420" y="160" text-anchor="middle">3</text>
+        <polygon points="420,179 413,195 427,195" fill="#f5c518" opacity="0.9"/>
+      </g>
+      <text x="420" y="210" text-anchor="middle" fill="#4a7abf" font-size="9" font-family="Barlow Condensed" letter-spacing="1" id="pin-label-2">???</text>
+
+      <!-- PIN 4: Casa -->
+      <g class="map-pin" onclick="openModal(3)" id="pin-3">
+        <circle cx="550" cy="200" r="22" fill="#003f8a" stroke="#f5c518" stroke-width="2.5" class="pin-circle"/>
+        <text class="pin-number" x="550" y="205" text-anchor="middle">4</text>
+        <polygon points="550,224 543,240 557,240" fill="#f5c518" opacity="0.9"/>
+      </g>
+      <text x="550" y="255" text-anchor="middle" fill="#4a7abf" font-size="9" font-family="Barlow Condensed" letter-spacing="1" id="pin-label-3">???</text>
+
+      <!-- Boca logo area suggestion -->
+      <text x="620" y="290" fill="#001f45" font-size="40" font-family="Barlow Condensed" font-weight="700" opacity="0.15">BOCA</text>
+
+      <!-- Compass rose -->
+      <g transform="translate(60, 60)">
+        <circle cx="0" cy="0" r="20" fill="#001228" stroke="#0a3d6b" stroke-width="1"/>
+        <polygon points="0,-16 -5,0 0,-6 5,0" fill="#f5c518" opacity="0.8"/>
+        <polygon points="0,16 -5,0 0,6 5,0" fill="#8ab0d0" opacity="0.5"/>
+        <polygon points="-16,0 0,-5 -6,0 0,5" fill="#8ab0d0" opacity="0.5"/>
+        <polygon points="16,0 0,-5 6,0 0,5" fill="#8ab0d0" opacity="0.5"/>
+        <text x="0" y="-20" text-anchor="middle" fill="#f5c518" font-size="9" font-family="Barlow Condensed" opacity="0.8">N</text>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<!-- STOPS GRID -->
+<div class="stops-grid">
+
+  <div class="stop-card" id="card-0" onclick="openModal(0)">
+    <div class="stop-number">Parada 1</div>
+    <div class="stop-icon" id="icon-0">🔒</div>
+    <div class="stop-title-locked" id="title-0">Destino Misterioso</div>
+    <div class="stop-desc" id="desc-0">Ingresá la contraseña para descubrir la primera parada del día</div>
+    <span class="lock-icon" id="lock-0">🔐</span>
+  </div>
+
+  <div class="stop-card" id="card-1" onclick="openModal(1)">
+    <div class="stop-number">Parada 2</div>
+    <div class="stop-icon" id="icon-1">🔒</div>
+    <div class="stop-title-locked" id="title-1">Destino Misterioso</div>
+    <div class="stop-desc" id="desc-1">Ingresá la contraseña para descubrir la segunda parada</div>
+    <span class="lock-icon" id="lock-1">🔐</span>
+  </div>
+
+  <div class="stop-card" id="card-2" onclick="openModal(2)">
+    <div class="stop-number">Parada 3</div>
+    <div class="stop-icon" id="icon-2">🔒</div>
+    <div class="stop-title-locked" id="title-2">Destino Misterioso</div>
+    <div class="stop-desc" id="desc-2">Ingresá la contraseña para descubrir la tercera parada</div>
+    <span class="lock-icon" id="lock-2">🔐</span>
+  </div>
+
+  <div class="stop-card" id="card-3" onclick="openModal(3)">
+    <div class="stop-number">Parada 4</div>
+    <div class="stop-icon" id="icon-3">🔒</div>
+    <div class="stop-title-locked" id="title-3">Destino Misterioso</div>
+    <div class="stop-desc" id="desc-3">Ingresá la contraseña para descubrir la última sorpresa</div>
+    <span class="lock-icon" id="lock-3">🔐</span>
+  </div>
+
+</div>
+
+<!-- ─── MODALS ─── -->
+
+<!-- Password Modal -->
+<div class="modal-overlay" id="pwd-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-icon" id="m-icon">🗺️</div>
+    <h2 id="m-stop">Parada 1</h2>
+    <p class="question-text" id="m-question"></p>
+    <input type="text" id="pwd-input" placeholder="Tu respuesta..." autocomplete="off" autocorrect="off" spellcheck="false"/>
+    <p class="modal-error" id="m-error"></p>
+    <button class="modal-btn" onclick="checkPassword()">Desbloquear →</button>
+  </div>
+</div>
+
+<!-- Reveal Modal -->
+<div class="modal-overlay" id="reveal-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeReveal()">×</button>
+    <div class="reveal-content">
+      <div class="confetti-bar" id="r-confetti">🎉🏆💙🌟💛</div>
+      <div class="big-icon" id="r-icon"></div>
+      <h2 id="r-name"></h2>
+      <p class="address" id="r-address"></p>
+      <div class="reveal-detail" id="r-detail"></div>
+      <button class="modal-btn" onclick="closeReveal()">¡Perfecto! ✓</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Hecho con 💙💛 por Emilia · Una cita especial para Laura · Buenos Aires
+</footer>
+
+</div><!-- end content-wrap -->
+
+<script>
+function startAdventure() {
+  const intro = document.getElementById('intro-screen');
+  intro.classList.add('hiding');
+  setTimeout(() => { intro.style.display = 'none'; }, 850);
+}
+
+const stops = [
+  {
+    icon: '🏙️',
+    name: 'Mirador del Obelisco',
+    address: 'Av. Pres. Roque Sáenz Peña 1124, CABA',
+    question: '¿Dónde está la sucursal de McDonalds que debe ser protegida cuando gana Boca?',
+    password: 'obelisco',
+    detail: 'El ícono más porteño de Buenos Aires. Desde las alturas del Obelisco van a tener la mejor vista de la ciudad: el Cabildo, la 9 de Julio, los estadios... ¡y tal vez hasta La Bombonera! 🏟️',
+    mapLabel: 'Obelisco',
+    confetti: '🏙️🌟⚽💙'
+  },
+  {
+    icon: '☕',
+    name: 'Café Tortoni',
+    address: 'Av. de Mayo 825, CABA · Abierto desde las 8:00',
+    question: '¿En qué famoso café merendaba la gente paqueta de 1860?',
+    password: 'cafe tortoni',
+    detail: 'El café más elegante y antiguo de Buenos Aires, fundado en 1858. Madera oscura, vitrales, mozos de frac... Una merienda con historia donde tomaron café Borges, Gardel y tantos otros. ✨',
+    mapLabel: 'Café Tortoni',
+    confetti: '☕🥐🎶✨'
+  },
+  {
+    icon: '🎭',
+    name: 'Teatro San Martín',
+    address: 'Av. Corrientes 1530, CABA',
+    question: '¿Quién es tu prócer favorito?',
+    password: 'san martín',
+    altPasswords: ['san martin', 'sanmartín', 'sanmartin'],
+    detail: 'Esta noche van a ver "Invasiones I" en el teatro más importante de Buenos Aires. Una obra imperdible en el escenario del San Martín, donde la cultura porteña late con fuerza. 🎭',
+    mapLabel: 'Teatro San Martín',
+    confetti: '🎭🌹🏛️🎉'
+  },
+  {
+    icon: '🏠',
+    name: 'De vuelta a casa',
+    address: 'El lugar más lindo del mundo 🏡',
+    question: '¿Quién tiene 4 patas, ojos celestes y 3 colores?',
+    password: 'poly',
+    detail: 'Después de un día lleno de aventuras y amor por Buenos Aires, llegó el momento de volver a casa. ¡Poly te estará esperando! 🐱 Una cita perfecta merece un final tranquilo y cálido. 💙',
+    mapLabel: 'Casa',
+    confetti: '🏠🐱💛💙'
+  }
+];
+
+const unlocked = [false, false, false, false];
+let currentStop = -1;
+
+function openModal(idx) {
+  currentStop = idx;
+  const s = stops[idx];
+  document.getElementById('m-icon').textContent = unlocked[idx] ? s.icon : '🔐';
+  document.getElementById('m-stop').textContent = `Parada ${idx + 1}`;
+  document.getElementById('m-question').textContent = s.question;
+  document.getElementById('pwd-input').value = '';
+  document.getElementById('m-error').textContent = '';
+  if (unlocked[idx]) {
+    showReveal(idx);
+    return;
+  }
+  document.getElementById('pwd-modal').classList.add('active');
+  setTimeout(() => document.getElementById('pwd-input').focus(), 100);
+}
+
+document.getElementById('pwd-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkPassword();
+});
+
+function checkPassword() {
+  const val = document.getElementById('pwd-input').value.trim().toLowerCase();
+  const s = stops[currentStop];
+  const correct = val === s.password.toLowerCase() ||
+    (s.altPasswords && s.altPasswords.some(a => val === a));
+
+  if (correct) {
+    unlocked[currentStop] = true;
+    document.getElementById('pwd-modal').classList.remove('active');
+    unlockCard(currentStop);
+    setTimeout(() => showReveal(currentStop), 200);
+    updateProgress();
+  } else {
+    const errEl = document.getElementById('m-error');
+    errEl.textContent = '🔒 Contraseña incorrecta, ¡pensá un poco más!';
+    document.getElementById('pwd-input').style.borderColor = '#ff6b6b';
+    setTimeout(() => {
+      errEl.textContent = '';
+      document.getElementById('pwd-input').style.borderColor = '';
+    }, 2000);
+  }
+}
+
+function unlockCard(idx) {
+  const s = stops[idx];
+  const card = document.getElementById(`card-${idx}`);
+  card.classList.add('unlocked');
+  document.getElementById(`icon-${idx}`).textContent = s.icon;
+  const titleEl = document.getElementById(`title-${idx}`);
+  titleEl.className = 'stop-title-unlocked';
+  titleEl.textContent = s.name;
+  document.getElementById(`desc-${idx}`).textContent = s.detail.substring(0, 80) + '...';
+  const lockEl = document.getElementById(`lock-${idx}`);
+  lockEl.className = 'unlock-badge';
+  lockEl.textContent = '✓ Desbloqueada';
+  // Update map label
+  const mapLabel = document.getElementById(`pin-label-${idx}`);
+  if (mapLabel) {
+    mapLabel.textContent = s.mapLabel;
+    mapLabel.setAttribute('fill', '#f5c518');
+  }
+  // Update pin color
+  const pin = document.getElementById(`pin-${idx}`);
+  if (pin) {
+    pin.querySelector('circle').setAttribute('fill', '#f5a800');
+    pin.querySelector('circle').setAttribute('stroke', '#ffd740');
+  }
+}
+
+function showReveal(idx) {
+  const s = stops[idx];
+  document.getElementById('r-icon').textContent = s.icon;
+  document.getElementById('r-name').textContent = s.name;
+  document.getElementById('r-address').textContent = s.address;
+  document.getElementById('r-detail').textContent = s.detail;
+  document.getElementById('r-confetti').textContent = s.confetti;
+  document.getElementById('reveal-modal').classList.add('active');
+  spawnFireworks();
+}
+
+function closeModal() {
+  document.getElementById('pwd-modal').classList.remove('active');
+  currentStop = -1;
+}
+
+function closeReveal() {
+  document.getElementById('reveal-modal').classList.remove('active');
+  currentStop = -1;
+}
+
+function updateProgress() {
+  const count = unlocked.filter(Boolean).length;
+  document.getElementById('progress-label').textContent = `${count} de 4 paradas desbloqueadas`;
+  document.getElementById('progress-fill').style.width = `${count * 25}%`;
+}
+
+function spawnFireworks() {
+  const emojis = ['💙','💛','⭐','🎉','✨','🏆'];
+  for (let i = 0; i < 12; i++) {
+    const el = document.createElement('div');
+    el.className = 'firework';
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    const x = Math.random() * window.innerWidth;
+    const y = Math.random() * window.innerHeight * 0.6 + 100;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.setProperty('--tx', (Math.random() * 120 - 60) + 'px');
+    el.style.setProperty('--ty', (Math.random() * -100 - 20) + 'px');
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1600);
+  }
+}
+
+// Generate stars
+(function() {
+  const container = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    s.style.left = Math.random() * 100 + '%';
+    s.style.top = Math.random() * 100 + '%';
+    s.style.setProperty('--d', (2 + Math.random() * 4) + 's');
+    s.style.setProperty('--o', (0.2 + Math.random() * 0.6).toFixed(2));
+    container.appendChild(s);
+  }
+})();
+
+// Close modals on overlay click
+document.getElementById('pwd-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+document.getElementById('reveal-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeReveal();
+});
+</script>
+</body>
+</html>
